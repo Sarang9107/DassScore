@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
@@ -66,7 +65,6 @@ fun TestScreen(
             .fillMaxSize()
             .padding(24.dp)
     ) {
-        // Top Bar with Exit Button
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -89,12 +87,10 @@ fun TestScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // Placeholder for alignment
             Spacer(modifier = Modifier.size(40.dp))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        // Progress Section
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -181,7 +177,6 @@ fun TestScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Navigation Buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)

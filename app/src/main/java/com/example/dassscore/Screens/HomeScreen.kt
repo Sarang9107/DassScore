@@ -1,200 +1,154 @@
 package com.example.dassscore.screens
 
-import com.example.dassscore.R // TODO: Verify this matches your app's namespace (e.g., com.Projects.DASS.R)
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack // For History
-import androidx.compose.material.icons.filled.ExitToApp // For Logout
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.dassscore.User // Assuming you have a User class
+import com.example.dassscore.R
+import com.example.dassscore.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    user: User, // Assuming you might use user info, otherwise can be removed
+    user: User,
     onStartTest: () -> Unit,
     onViewHistory: () -> Unit,
-    hasHistory: Boolean, // To conditionally show the history button
-    onSignOut: () -> Unit // Callback for signing out
+    hasHistory: Boolean,
+    onSignOut: () -> Unit
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) } // State for dialog visibility
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Confirm Logout") },
+            text = { Text("Are you sure you want to sign out?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    onSignOut()
+                }) { Text("Confirm") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("DASS-42 Home") },
+                title = {
+                    Text(
+                        text = "Welcome",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                },
                 actions = {
-                    IconButton(onClick = {
-                        showLogoutDialog = true // Show dialog instead of direct logout
-                    }) {
+                    IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(
-                            imageVector = Icons.Filled.ExitToApp,
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
                             contentDescription = "Sign Out",
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = Color.Black
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor =  Color.Transparent
                 )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.onSurface
     ) { innerPadding ->
-        // Logout Confirmation Dialog
-        if (showLogoutDialog) {
-            AlertDialog(
-                onDismissRequest = { showLogoutDialog = false }, // Dismiss if clicked outside
-                title = { Text("Confirm Logout") },
-                text = { Text("Are you sure you want to sign out?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showLogoutDialog = false
-                            onSignOut() // Call the original sign out logic
-                        }
-                    ) {
-                        Text("Confirm")
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showLogoutDialog = false }
-                    ) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            Card(
-                modifier = Modifier
-                    .size(120.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.dass),
-                        contentDescription = "DASS Logo"
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                text = "DASS-42",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 36.sp
-                ),
-                color = MaterialTheme.colorScheme.primary
+            // Main visual element
+            Image(
+                painter = painterResource(id = R.drawable.dass),
+                contentDescription = "DASS Assessment Logo",
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text(
-                text = "Depression, Anxiety & Stress Scale",
+                text = "Emotional Assessment",
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "A quick and easy way to measure your emotional state. Ready to begin?",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.Black.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // Info Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            Icons.Default.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "About DASS-42",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        "A scientifically validated assessment tool that measures depression, anxiety, and stress levels through 42 carefully designed questions.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        InfoChip("42 Questions", R.drawable.question)
-                        Spacer(modifier = Modifier.width(2.dp))
-                        InfoChip("10-15 mins", R.drawable.time_left)
-                        Spacer(modifier = Modifier.width(2.dp))
-                        InfoChip("Instant Results", R.drawable.medical_result)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            // Start Button
+            // Primary Call-to-Action Button
             Button(
                 onClick = onStartTest,
                 modifier = Modifier
@@ -218,63 +172,101 @@ fun HomeScreen(
                 )
             }
 
-            // History Button
+            Spacer(modifier = Modifier.height(16.dp))
+
+
             if (hasHistory) {
-                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedButton(
                     onClick = onViewHistory,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
+                        .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        brush = ButtonDefaults.outlinedButtonBorder.brush ?: SolidColor(MaterialTheme.colorScheme.primary)
-                    )
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)),
                 ) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "View History",
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        Icons.Default.History,
+                        contentDescription = "View History"
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "View History",
-                        color = MaterialTheme.colorScheme.primary
+                        "View Assessment History",
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Card () {
+                    FeatureRow(
+                        icon = Icons.Default.CheckCircle,
+                        title = "42 Quick Questions",
+                        subtitle = "Simple self-assessment format."
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                FeatureRow(
+                    icon = Icons.Default.Timer,
+                    title = "10-15 Minutes",
+                    subtitle = "A short time for valuable insight."
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                FeatureRow(
+                    icon = Icons.Outlined.Analytics,
+                    title = "Private & Secure",
+                    subtitle = "Provides instant, private results."
+                )
+
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun InfoChip(text: String, drawableResId: Int) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+private fun InfoRow(icon: ImageVector, text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 16.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = drawableResId),
-                contentDescription = null,
-                Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = FontWeight.Medium
-                ),
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Black.copy(alpha = 0.9f)
+        )
     }
 }
 
+@Composable
+fun FeatureRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF0F3FF))
+            .padding(12.dp)
+    ) {
+        Icon(icon, contentDescription = null, tint = Color(0xFF6A74F7), modifier = Modifier.size(28.dp))
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(subtitle, fontSize = 12.sp, color = Color.Gray)
+        }
+    }
+}

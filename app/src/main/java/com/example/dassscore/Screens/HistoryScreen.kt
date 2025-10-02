@@ -41,9 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.dassscore.DassResult
 import com.example.dassscore.FirebaseRepository
-import com.example.dassscore.screens.getAnxietyColor
-import com.example.dassscore.screens.getDepressionColor
-import com.example.dassscore.screens.getStressColor
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,7 +129,6 @@ fun HistoryScreen(
         }
     }
 
-    // Clear History Dialog
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },

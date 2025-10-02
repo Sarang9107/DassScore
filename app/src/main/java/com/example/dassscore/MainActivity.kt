@@ -1,36 +1,33 @@
 package com.example.dassscore
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.dassscore.screens.HomeScreen
-import com.example.dassscore.screens.ResultScreen
-import com.example.dassscore.screens.TestScreen
-import com.example.dassscore.screens.AuthScreen
-import com.example.dassscore.screens.HistoryScreen
+import com.example.dassscore.screens.AdminDashboardScreen
+import com.example.dassscore.screens.DataVisualizationScreen
+import com.example.dassscore.screens.*
 import com.example.dassscore.ui.theme.DassScoreTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,9 +37,9 @@ class MainActivity : ComponentActivity() {
             DassScoreTheme {
                 DassScoreApp()
             }
-            }
         }
     }
+}
 
 data class DassResult(
     val depressionScore: Int,
@@ -63,12 +60,12 @@ enum class DassCategory {
     ANXIETY,
     STRESS
 }
+
 data class DassQuestion(
     val id: Int,
     val text: String,
     val category: DassCategory
 )
-
 
 data class ScoreInterpretation(
     val category: String,
@@ -78,8 +75,8 @@ data class ScoreInterpretation(
     val icon: ImageVector,
     val description: String
 )
+
 val questions = listOf(
-    // Depression Questions (14 questions)
     DassQuestion(0,"I couldn't seem to experience any positive feeling at all", DassCategory.DEPRESSION),
     DassQuestion(1, "I found it difficult to work up the initiative to do things", DassCategory.DEPRESSION),
     DassQuestion(2, "I felt that I had nothing to look forward to", DassCategory.DEPRESSION),
@@ -94,8 +91,6 @@ val questions = listOf(
     DassQuestion(11, "I felt I was pretty worthless", DassCategory.DEPRESSION),
     DassQuestion(12, "I could see nothing in the future to be hopeful about", DassCategory.DEPRESSION),
     DassQuestion(13, "I felt that life wasn't worthwhile", DassCategory.DEPRESSION),
-
-    // Anxiety Questions (14 questions)
     DassQuestion(14, "I was aware of dryness of my mouth", DassCategory.ANXIETY),
     DassQuestion(15, "I experienced breathing difficulty", DassCategory.ANXIETY),
     DassQuestion(16, "I experienced trembling (eg, in the hands)", DassCategory.ANXIETY),
@@ -110,8 +105,6 @@ val questions = listOf(
     DassQuestion(25, "I felt terrified", DassCategory.ANXIETY),
     DassQuestion(26, "I was worried about situations in which I might panic", DassCategory.ANXIETY),
     DassQuestion(27, "I experienced sudden feelings of panic", DassCategory.ANXIETY),
-
-    // Stress Questions (14 questions)
     DassQuestion(28, "I found it hard to wind down", DassCategory.STRESS),
     DassQuestion(29, "I tended to over-react to situations", DassCategory.STRESS),
     DassQuestion(30, "I felt that I was using a lot of nervous energy", DassCategory.STRESS),
@@ -125,34 +118,67 @@ val questions = listOf(
     DassQuestion(38, "I found it difficult to tolerate interruptions to what I was doing", DassCategory.STRESS),
     DassQuestion(39, "I was in a state of nervous tension", DassCategory.STRESS),
     DassQuestion(40, "I found myself getting impatient when I was delayed in any way", DassCategory.STRESS),
-    DassQuestion(41, "I felt that I was rather sensitive", DassCategory.STRESS))
+    DassQuestion(41, "I felt that I was rather sensitive", DassCategory.STRESS)
+)
 
-
-    @OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DassScoreApp(){
-        val repository = remember { FirebaseRepository() }
-        var currentUser by remember { mutableStateOf(repository.getCurrentUser()) }
-        var currentScreen by remember { mutableStateOf(if (currentUser != null) "home" else "auth") }
-        var responses by remember { mutableStateOf(List(42) { -1 }) }
-        var currentQuestion by remember { mutableIntStateOf(0) }
-        var result by remember { mutableStateOf<DassResult?>(null) }
-        var savedResults by remember { mutableStateOf(listOf<DassResult>()) }
-        var isLoading by remember { mutableStateOf(false) } // This variable is assigned but never read
+fun DassScoreApp() {
+    val repository = remember { FirebaseRepository() }
+    var currentUser by remember { mutableStateOf(repository.getCurrentUser()) }
+    // Start with a loading screen to prevent UI flicker while checking the user's role
+    var currentScreen by remember { mutableStateOf(if (currentUser != null) "loading" else "auth") }
+    var responses by remember { mutableStateOf(List(42) { -1 }) }
+    var currentQuestion by remember { mutableIntStateOf(0) }
+    var result by remember { mutableStateOf<DassResult?>(null) }
+    var savedResults by remember { mutableStateOf(listOf<DassResult>()) }
+    var isLoading by remember { mutableStateOf(false) }
 
-        LaunchedEffect(currentUser) {
-            if (currentUser != null) {
-                isLoading = true
-                repository.getUserDassResults(currentUser!!.uid).fold(
-                    onSuccess = { results -> savedResults = results },
-                    onFailure = { /* Handle error silently for now */ }
-                )
+    var profileUpdateTrigger by remember { mutableIntStateOf(0) }
+
+    val onSignOut: () -> Unit = {
+        repository.signOut()
+        responses = List(42) { -1 }
+        currentQuestion = 0
+        result = null
+        savedResults = emptyList()
+        currentUser = null
+    }
+
+    LaunchedEffect(currentUser, profileUpdateTrigger) {
+        if (currentUser != null) {
+            isLoading = true
+            try {
+                val userDocRef = repository.db.collection("users").document(currentUser!!.uid)
+                val userDoc = userDocRef.get().await()
+                val userRole = userDoc.getString("role") ?: "student"
+
+                if (userRole == "admin") {
+                    currentScreen = "admin_dashboard"
+                } else {
+                    if (userDoc.exists() && !userDoc.getString("name").isNullOrBlank()) {
+                        currentScreen = "home"
+                    } else {
+                        currentScreen = "profile"
+                    }
+                    repository.getUserDassResults(currentUser!!.uid).fold(
+                        onSuccess = { results -> savedResults = results },
+                        onFailure = { exception ->
+                            Log.e("MainActivity", "Failed to get user DASS results", exception)
+                        }
+                    )
+                }
+            } catch (e: Exception) {
+                onSignOut()
+            } finally {
                 isLoading = false
             }
+        } else {
+            currentScreen = "auth"
         }
+    }
 
-
-        Box(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -164,104 +190,122 @@ fun DassScoreApp(){
                 )
             )
     ) {
-            when (currentScreen) {
-                "auth" -> AuthScreen(
-                    repository = repository,
-                    onAuthSuccess = { user ->
-                        currentUser = user
-                        currentScreen = "home"
-                    }
-                )
-                "home" -> HomeScreen(
-                    user = currentUser!!,
-                    onStartTest = {
-                        currentScreen = "test"
-                        responses = List(42) { -1 }
-                        currentQuestion = 0
-                    },
-                    onViewHistory = { currentScreen = "history" },
-                    onSignOut = {
-                        repository.signOut()
-                        currentUser = null
-                        currentScreen = "auth"
-                        savedResults = emptyList()
-                    },
-                    hasHistory = savedResults.isNotEmpty()
-                )
-                "test" -> TestScreen(
-                    questions = questions,
-                    currentQuestion = currentQuestion,
-                    responses = responses,
-                    onAnswerSelected = { answer ->
-                        responses = responses.toMutableList().apply {
-                            this[currentQuestion] = answer
-                        }
-                    },
-                    onNext = {
-                        if (currentQuestion < questions.size - 1) {
-                            currentQuestion++
-                        } else {
-                            val newResult = calculateDassScore(responses, questions)
-                            val resultToSave = newResult.copy(
-                                userId = currentUser?.uid ?: "",
-                                responses = responses
-                            )
-                            result = resultToSave
-
-                            // Save to Firebase
-                            CoroutineScope(Dispatchers.Main).launch {
-                                repository.saveDassResult(
-                                    responses = responses,
-                                    dassScores = resultToSave, // Corrected parameter
-                                    userId = currentUser?.uid ?: ""
-                                ).fold(
-                                    onSuccess = {
-                                        savedResults = savedResults + resultToSave
-                                    },
-                                    onFailure = { /* Handle error, e.g., show a Snackbar */ }
-                                )
-                            }
-                            currentScreen = "result"
-                        }
-                    },
-                    onPrevious = {
-                        if (currentQuestion > 0) {
-                            currentQuestion--
-                        }
-                    },
-                    onExit = { currentScreen = "home" }
-                )
-                "result" -> ResultScreen(
-                    result = result!!,
-                    firebaseRepository = repository, // Added firebaseRepository parameter
-                    onRestart = {
-                        currentScreen = "home"
-                        currentQuestion = 0
-                        responses = List(42) { -1 } // Reset for 42 questions
-                        result = null
-                    },
-                    onViewHistory = { currentScreen = "history" }
-                )
-                "history" -> HistoryScreen(
-                    results = savedResults,
-                    onBack = { currentScreen = "home" },
-                    onClearHistory = { savedResults = emptyList() },
-                    repository = repository,
-                    onResultsUpdated = { updatedResults ->
-                        savedResults = updatedResults
-                    }
-                )
+        when (currentScreen) {
+            "loading" -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
+            "auth" -> AuthScreen(
+                repository = repository,
+                onAuthSuccess = { user ->
+                    currentUser = user
+                }
+            )
+            "profile" -> {
+                currentUser?.let { user ->
+                    ProfileScreen(
+                        user = user,
+                        repository = repository,
+                        onProfileSaved = {
+                            profileUpdateTrigger++
+                        }
+                    )
+                }
+            }
+            "home" -> {
+                currentUser?.let { user ->
+                    HomeScreen(
+                        user = user,
+                        onStartTest = {
+                            currentScreen = "test"
+                            responses = List(42) { -1 }
+                            currentQuestion = 0
+                        },
+                        onViewHistory = { currentScreen = "history" },
+                        onSignOut = onSignOut,
+                        hasHistory = savedResults.isNotEmpty()
+                    )
+                }
+            }
+            "test" -> TestScreen(
+                questions = questions,
+                currentQuestion = currentQuestion,
+                responses = responses,
+                onAnswerSelected = { answer ->
+                    responses = responses.toMutableList().apply { this[currentQuestion] = answer }
+                },
+                onNext = {
+                    if (currentQuestion < questions.size - 1) {
+                        currentQuestion++
+                    } else {
+                        val (depression, anxiety, stress) = calculateDassScores(responses, questions)
+
+                        val resultToSave = DassResult(
+                            depressionScore = depression,
+                            anxietyScore = anxiety,
+                            stressScore = stress,
+                            userId = currentUser?.uid ?: "",
+                            responses = responses
+                        )
+
+                        result = resultToSave
+
+                        CoroutineScope(Dispatchers.Main).launch {
+                            repository.saveDassResult(resultToSave).fold(
+                                onSuccess = {
+                                    Log.d("MainActivity", "Successfully saved DASS result to Firebase.")
+                                    savedResults = savedResults + resultToSave
+                                },
+                                // FIX 3: Add proper error handling to see why saving might fail
+                                onFailure = { exception ->
+                                    Log.e("MainActivity", "Failed to save DASS result", exception)
+                                }
+                            )
+                        }
+                        currentScreen = "result"
+                    }
+                },
+                onPrevious = { if (currentQuestion > 0) currentQuestion-- },
+                onExit = { currentScreen = "home" }
+            )
+            "result" -> ResultScreen(
+                result = result!!,
+                firebaseRepository = repository,
+                onRestart = {
+                    currentScreen = "home"
+                    result = null
+                },
+                onViewHistory = { currentScreen = "history" }
+            )
+            "history" -> HistoryScreen(
+                results = savedResults,
+                onBack = { currentScreen = "home" },
+                onClearHistory = { savedResults = emptyList() },
+                repository = repository,
+                onResultsUpdated = { updatedResults -> savedResults = updatedResults }
+            )
+            "admin_dashboard" -> AdminDashboardScreen(
+                onSignOut = onSignOut,
+                onNavigateToVisualization = {
+                    currentScreen = "data_visualization"
+                }
+            )
+            "data_visualization" -> DataVisualizationScreen(
+                repository = repository,
+                onBack = { currentScreen = "admin_dashboard" }
+            )
         }
+    }
 }
 
-fun calculateDassScore(responses: List<Int>, questions: List<DassQuestion>): DassResult {
+fun calculateDassScores(responses: List<Int>, questions: List<DassQuestion>): Triple<Int, Int, Int> {
     var depressionScore = 0
     var anxietyScore = 0
     var stressScore = 0
 
     responses.forEachIndexed { index, response ->
-        if (response != -1) { // Only count answered questions
+        if (response != -1) {
             val question = questions[index]
             when (question.category) {
                 DassCategory.DEPRESSION -> depressionScore += response
@@ -270,13 +314,5 @@ fun calculateDassScore(responses: List<Int>, questions: List<DassQuestion>): Das
             }
         }
     }
-
-    // DASS-42 uses raw scores (no multiplication needed)
-    return DassResult(
-        depressionScore = depressionScore,
-        anxietyScore = anxietyScore,
-        stressScore = stressScore,
-        userId="", // This will be overwritten in resultToSave if currentUser is not null
-        responses = responses
-    )
+    return Triple(depressionScore, anxietyScore, stressScore)
 }

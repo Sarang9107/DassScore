@@ -1,6 +1,5 @@
 package com.example.dassscore.screens
 
-import android.util.Log
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -27,53 +30,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.dassscore.DassCategory
-import com.example.dassscore.DassQuestion
 import com.example.dassscore.DassResult
 import com.example.dassscore.FirebaseRepository
+import com.example.dassscore.R
 import com.example.dassscore.ScoreInterpretation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Composable
 fun ResultScreen(
     result: DassResult,
     onRestart: () -> Unit,
     onViewHistory: () -> Unit,
-    firebaseRepository: FirebaseRepository // Added FirebaseRepository
+    firebaseRepository: FirebaseRepository
 ) {
-    // Save the result when the screen is first composed
-    LaunchedEffect(key1 = result) {
-        if (result.userId.isNotBlank()) { // Ensure userId is present
-            CoroutineScope(Dispatchers.IO).launch {
-                val saveResult = firebaseRepository.saveDassResult(
-                    userId = result.userId,
-                    responses = result.responses,
-                    dassScores = result
-                )
-                saveResult.fold(
-                    onSuccess = {
-                        Log.d("ResultScreen", "DASS result saved successfully for user ${result.userId}")
-                    },
-                    onFailure = { exception ->
-                        Log.e("ResultScreen", "Failed to save DASS result for user ${result.userId}: ${exception.message}", exception)
-                    }
-                )
-            }
-        } else {
-            Log.w("ResultScreen", "Skipping save: userId is blank in DassResult.")
-        }
-    }
 
     LazyColumn(
         modifier = Modifier
@@ -82,7 +59,6 @@ fun ResultScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item {
-            // Header
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -94,7 +70,7 @@ fun ResultScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        Icons.Default.Warning,
+                        painter = painterResource(R.drawable.medical_result),
                         contentDescription = null,
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -124,7 +100,7 @@ fun ResultScreen(
         }
 
         item {
-            // Action Buttons
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -148,7 +124,7 @@ fun ResultScreen(
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Default.Warning, contentDescription = null)
+                    Icon(Icons.Default.History, contentDescription = "View History")
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("History", fontSize = 14.sp)
                 }
@@ -156,7 +132,7 @@ fun ResultScreen(
         }
 
         item {
-            // Disclaimer
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -280,7 +256,7 @@ fun getScoreInterpretations(result: DassResult): List<ScoreInterpretation> {
             score = result.depressionScore,
             level = getDepressionLevel(result.depressionScore),
             color = getDepressionColor(result.depressionScore),
-            icon = Icons.Default.Warning,
+            icon = Icons.Default.SentimentVeryDissatisfied,
             description = getDepressionDescription(result.depressionScore)
         ),
         ScoreInterpretation(
@@ -288,7 +264,7 @@ fun getScoreInterpretations(result: DassResult): List<ScoreInterpretation> {
             score = result.anxietyScore,
             level = getAnxietyLevel(result.anxietyScore),
             color = getAnxietyColor(result.anxietyScore),
-            icon = Icons.Default.Warning,
+            icon = Icons.Default.Psychology,
             description = getAnxietyDescription(result.anxietyScore)
         ),
         ScoreInterpretation(
@@ -296,13 +272,12 @@ fun getScoreInterpretations(result: DassResult): List<ScoreInterpretation> {
             score = result.stressScore,
             level = getStressLevel(result.stressScore),
             color = getStressColor(result.stressScore),
-            icon = Icons.Default.Warning,
+            icon = Icons.Default.LocalFireDepartment,
             description = getStressDescription(result.stressScore)
         )
     )
 }
 
-// DASS-42 Scoring Thresholds (different from DASS-21)
 fun getDepressionLevel(score: Int): String = when {
     score <= 9 -> "Normal"
     score <= 13 -> "Mild"
@@ -368,9 +343,9 @@ fun getAnxietyDescription(score: Int): String = when {
 }
 
 fun getStressDescription(score: Int): String = when {
-    score <= 7 -> "Your anxiety levels are within the normal range. You're managing stress and worry effectively."
-    score <= 9 -> "You may be experiencing mild anxiety symptoms. Consider relaxation techniques and stress management."
-    score <= 14 -> "You're showing moderate anxiety levels. Professional guidance could help you develop coping strategies."
-    score <= 19 -> "You're experiencing severe anxiety symptoms. Professional support is strongly recommended."
-    else -> "You're showing extremely severe anxiety levels. Please seek immediate professional help."
+    score <= 14 -> "Your stress levels are within the normal range. You're effectively managing daily pressures."
+    score <= 18 -> "You may be experiencing mild stress. It's a good time to practice relaxation techniques and ensure you're getting enough rest."
+    score <= 25 -> "You're showing moderate stress levels. It may be beneficial to identify stressors and develop coping strategies, possibly with professional guidance."
+    score <= 33 -> "You're experiencing severe stress symptoms. This can impact your physical and mental health. Professional support is strongly recommended."
+    else -> "You're showing extremely severe stress levels. Please seek immediate professional help to manage your stress and prevent burnout."
 }
