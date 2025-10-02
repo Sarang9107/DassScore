@@ -1,5 +1,5 @@
-# DassScore 📱
-*A modern Android application for administering the Depression, Anxiety, and Stress Scale (DASS-21), built with Jetpack Compose and Firebase.*
+# Emotion📱
+*A modern Android application for administering the Depression, Anxiety, and Stress Scale (DASS-42), built with Jetpack Compose and Firebase.*
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9-blueviolet)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-%F0%9F%92%BB-blue)
@@ -10,7 +10,7 @@
 
 ## ✨ Features
 - ✅ **Secure Authentication** – Firebase Authentication for user registration & login.  
-- ✅ **DASS-21 Questionnaire** – Interactive 21-question assessment with a clean Compose UI.  
+- ✅ **DASS-42 Questionnaire** – Interactive 42-question assessment with a clean Compose UI.  
 - ✅ **Automated Scoring** – Calculates Depression, Anxiety, and Stress subscales instantly.  
 - ✅ **Result Persistence** – Stores user results in **Cloud Firestore** for history tracking.  
 - ✅ **Modern UI** – Fully declarative interface with **Material Design 3**.  
