@@ -17,8 +17,6 @@
 ---
 
 ## 📸 Screenshots
-| Login Screen | Questionnaire | Results |
-|--------------|---------------|---------|
 ![WhatsApp Image 2025-10-02 at 12 13 30_0f28f150](https://github.com/user-attachments/assets/d977cb8d-135c-48e4-8f92-eda5d3016e15)
 ![WhatsApp Image 2025-10-02 at 12 13 31_e5de91c8](https://github.com/user-attachments/assets/6a46186e-e0fa-4bae-bf7a-f2fbbf566ba6)
 ![WhatsApp Image 2025-10-02 at 12 13 52_020d5215](https://github.com/user-attachments/assets/af1b980c-3937-49d3-a78b-6ef1738b8fbe)
