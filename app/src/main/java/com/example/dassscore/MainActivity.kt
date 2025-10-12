@@ -18,9 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.dassscore.screens.AdminDashboardScreen
-import com.example.dassscore.screens.DataVisualizationScreen
-import com.example.dassscore.screens.*
+import com.example.dassscore.features.admin.AdminDashboardScreen
+import com.example.dassscore.features.auth.AuthScreen
+import com.example.dassscore.features.history.HistoryScreen
+import com.example.dassscore.features.home.HomeScreen
+import com.example.dassscore.features.profile.ProfileScreen
+import com.example.dassscore.features.progress.DataVisualizationScreen
+import com.example.dassscore.features.progress.StudentProgressScreen
+import com.example.dassscore.features.result.ResultScreen
+import com.example.dassscore.features.test.TestScreen
 import com.example.dassscore.ui.theme.DassScoreTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -289,10 +295,16 @@ fun DassScoreApp() {
                 onSignOut = onSignOut,
                 onNavigateToVisualization = {
                     currentScreen = "data_visualization"
+                },
+                onNavigateToStudentProgress = {
+                    currentScreen = "student_progress"
                 }
             )
             "data_visualization" -> DataVisualizationScreen(
                 repository = repository,
+                onBack = { currentScreen = "admin_dashboard" }
+            )
+            "student_progress" -> StudentProgressScreen(
                 onBack = { currentScreen = "admin_dashboard" }
             )
         }
