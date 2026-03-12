@@ -11,19 +11,7 @@
 [![Material 3](https://img.shields.io/badge/Material%20Design%203-757575?style=for-the-badge&logo=materialdesign&logoColor=white)](https://m3.material.io)
 [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen?style=for-the-badge)](https://developer.android.com)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
----
-
-<img src="https://github.com/user-attachments/assets/d977cb8d-135c-48e4-8f92-eda5d3016e15" width="230" alt="Login Screen"/>
-&nbsp;&nbsp;
-<img src="https://github.com/user-attachments/assets/6a46186e-e0fa-4bae-bf7a-f2fbbf566ba6" width="230" alt="Home Screen"/>
-&nbsp;&nbsp;
-<img src="https://github.com/user-attachments/assets/af1b980c-3937-49d3-a78b-6ef1738b8fbe" width="230" alt="Result Screen"/>
-
-</div>
-
----
 
 ## 🌟 What is Emotion?
 
@@ -224,12 +212,6 @@ Contributions are welcome! Feel free to:
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
