@@ -20,17 +20,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.dassscore.FirebaseRepository
-import com.example.dassscore.User
+import com.example.dassscore.data.repository.FirebaseRepository
+import com.example.dassscore.data.repository.User
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
-    user: User,
-    repository: FirebaseRepository,
-    onProfileSaved: () -> Unit
-) {
+fun ProfileScreen(user: User, repository: FirebaseRepository, onProfileSaved: () -> Unit) {
     var rbt by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var mobileNumber by remember { mutableStateOf("") }
@@ -39,17 +35,17 @@ fun ProfileScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-
-    val departments = listOf(
-        "Computer Engineering",
-        "Information Technology",
-        "Computer Science and Bussiness System",
-        "Automation and Robotics",
-        "Mechanical",
-        "Civil",
-        "Electronics & Telecommunication",
-        "Electrical"
-    )
+    val departments =
+            listOf(
+                    "Computer Engineering",
+                    "Information Technology",
+                    "Computer Science and Bussiness System",
+                    "Automation and Robotics",
+                    "Mechanical",
+                    "Civil",
+                    "Electronics & Telecommunication",
+                    "Electrical"
+            )
     val years = listOf("First Year", "Second Year", "Third Year", "Fourth Year")
 
     var isDepartmentExpanded by remember { mutableStateOf(false) }
@@ -58,101 +54,103 @@ fun ProfileScreen(
     var isYearExpanded by remember { mutableStateOf(false) }
     var selectedYear by remember { mutableStateOf("") }
 
-
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState())
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        keyboardController?.hide()
-                        focusManager.clearFocus()
-                    })
-                },
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                modifier =
+                        Modifier.fillMaxSize()
+                                .padding(paddingValues)
+                                .padding(horizontal = 24.dp)
+                                .verticalScroll(rememberScrollState())
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                            onTap = {
+                                                keyboardController?.hide()
+                                                focusManager.clearFocus()
+                                            }
+                                    )
+                                },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Profile Icon",
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.primary
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profile Icon",
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "Complete Your Profile",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+                    "Complete Your Profile",
+                    style =
+                            MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold
+                            )
             )
             Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedTextField(
-                value = rbt,
-                onValueChange = { rbt = it },
-                label = { Text("RBT") },
-                modifier = Modifier.fillMaxWidth()
+                    value = rbt,
+                    onValueChange = { rbt = it },
+                    label = { Text("RBT") },
+                    modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Name") },
-                modifier = Modifier.fillMaxWidth()
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
-                value = mobileNumber,
-                onValueChange = { mobileNumber = it },
-                label = { Text("Mobile Number") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    value = mobileNumber,
+                    onValueChange = { mobileNumber = it },
+                    label = { Text("Mobile Number") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
-                value = parentContactNumber,
-                onValueChange = { parentContactNumber = it },
-                label = { Text("Parents Contact Number") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    value = parentContactNumber,
+                    onValueChange = { parentContactNumber = it },
+                    label = { Text("Parents Contact Number") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
             // --- Department Dropdown ---
             ExposedDropdownMenuBox(
-                expanded = isDepartmentExpanded,
-                onExpandedChange = { isDepartmentExpanded = it },
-                modifier = Modifier.fillMaxWidth()
+                    expanded = isDepartmentExpanded,
+                    onExpandedChange = { isDepartmentExpanded = it },
+                    modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = selectedDepartment,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Department") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDepartmentExpanded)
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
+                        value = selectedDepartment,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Department") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                    expanded = isDepartmentExpanded
+                            )
+                        },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                 )
                 ExposedDropdownMenu(
-                    expanded = isDepartmentExpanded,
-                    onDismissRequest = { isDepartmentExpanded = false }
+                        expanded = isDepartmentExpanded,
+                        onDismissRequest = { isDepartmentExpanded = false }
                 ) {
                     departments.forEach { department ->
                         DropdownMenuItem(
-                            text = { Text(department) },
-                            onClick = {
-                                selectedDepartment = department
-                                isDepartmentExpanded = false
-                            }
+                                text = { Text(department) },
+                                onClick = {
+                                    selectedDepartment = department
+                                    isDepartmentExpanded = false
+                                }
                         )
                     }
                 }
@@ -161,33 +159,31 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             ExposedDropdownMenuBox(
-                expanded = isYearExpanded,
-                onExpandedChange = { isYearExpanded = it },
-                modifier = Modifier.fillMaxWidth()
+                    expanded = isYearExpanded,
+                    onExpandedChange = { isYearExpanded = it },
+                    modifier = Modifier.fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = selectedYear,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Year") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isYearExpanded)
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
+                        value = selectedYear,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Year") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isYearExpanded)
+                        },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
                 )
                 ExposedDropdownMenu(
-                    expanded = isYearExpanded,
-                    onDismissRequest = { isYearExpanded = false }
+                        expanded = isYearExpanded,
+                        onDismissRequest = { isYearExpanded = false }
                 ) {
                     years.forEach { year ->
                         DropdownMenuItem(
-                            text = { Text(year) },
-                            onClick = {
-                                selectedYear = year
-                                isYearExpanded = false
-                            }
+                                text = { Text(year) },
+                                onClick = {
+                                    selectedYear = year
+                                    isYearExpanded = false
+                                }
                         )
                     }
                 }
@@ -196,46 +192,55 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = {
-                    isLoading = true
-                    val profileData = mapOf(
-                        "rbt" to rbt,
-                        "name" to name,
-                        "mobileNumber" to mobileNumber,
-                        "parentContactNumber" to parentContactNumber,
-                        "className" to selectedDepartment,
-                        "division" to selectedYear,
-                        "email" to (user.email ?: ""),
-                        "role" to "student"
-                    )
-                    coroutineScope.launch {
-                        repository.updateUserProfile(user.uid, profileData).fold(
-                            onSuccess = {
-                                isLoading = false
-                                onProfileSaved()
-                            },
-                            onFailure = { exception ->
-                                isLoading = false
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Failed to save profile: ${exception.message}",
-                                        actionLabel = "Dismiss",
-                                        duration = SnackbarDuration.Long
+                    onClick = {
+                        isLoading = true
+                        val profileData =
+                                mapOf(
+                                        "rbt" to rbt,
+                                        "name" to name,
+                                        "mobileNumber" to mobileNumber,
+                                        "parentContactNumber" to parentContactNumber,
+                                        "className" to selectedDepartment,
+                                        "division" to selectedYear,
+                                        "email" to (user.email ?: ""),
+                                        "role" to "student"
+                                )
+                        coroutineScope.launch {
+                            repository
+                                    .updateUserProfile(user.uid, profileData)
+                                    .fold(
+                                            onSuccess = {
+                                                isLoading = false
+                                                onProfileSaved()
+                                            },
+                                            onFailure = { exception ->
+                                                isLoading = false
+                                                coroutineScope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                            message =
+                                                                    "Failed to save profile: ${exception.message}",
+                                                            actionLabel = "Dismiss",
+                                                            duration = SnackbarDuration.Long
+                                                    )
+                                                }
+                                            }
                                     )
-                                }
-                            }
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                enabled = !isLoading && rbt.isNotBlank() && name.isNotBlank() && mobileNumber.isNotBlank() && parentContactNumber.isNotBlank() && selectedDepartment.isNotBlank() && selectedYear.isNotBlank()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    enabled =
+                            !isLoading &&
+                                    rbt.isNotBlank() &&
+                                    name.isNotBlank() &&
+                                    mobileNumber.isNotBlank() &&
+                                    parentContactNumber.isNotBlank() &&
+                                    selectedDepartment.isNotBlank() &&
+                                    selectedYear.isNotBlank()
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     Text("Save Profile", fontSize = 16.sp)

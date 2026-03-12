@@ -38,8 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.dassscore.DassResult
-import com.example.dassscore.FirebaseRepository
+import com.example.dassscore.model.DassResult
+import com.example.dassscore.data.repository.FirebaseRepository
 import com.example.dassscore.features.result.getAnxietyColor
 import com.example.dassscore.features.result.getDepressionColor
 import com.example.dassscore.features.result.getStressColor

@@ -1,9 +1,10 @@
 package com.example.dassscore.features.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,13 +22,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -55,218 +60,328 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dassscore.R
-import com.example.dassscore.User
+import com.example.dassscore.data.repository.User
+import com.example.dassscore.ui.theme.PrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    user: User,
-    onStartTest: () -> Unit,
-    onViewHistory: () -> Unit,
-    hasHistory: Boolean,
-    onSignOut: () -> Unit
+        user: User,
+        onStartTest: () -> Unit,
+        onViewHistory: () -> Unit,
+        onProfileClick: () -> Unit,
+        onSettingsClick: () -> Unit,
+        hasHistory: Boolean,
+        onSignOut: () -> Unit
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
+        var showLogoutDialog by remember { mutableStateOf(false) }
 
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Confirm Logout") },
-            text = { Text("Are you sure you want to sign out?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showLogoutDialog = false
-                    onSignOut()
-                }) { Text("Confirm") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel") }
-            }
-        )
-    }
+        // Premium background gradient
+        val backgroundBrush =
+                Brush.verticalGradient(
+                        colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
+                )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Welcome",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                },
-                actions = {
-                    IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = "Sign Out",
-                            tint = Color.Black
+        if (showLogoutDialog) {
+                AlertDialog(
+                        onDismissRequest = { showLogoutDialog = false },
+                        title = { Text("Confirm Logout") },
+                        text = { Text("Are you sure you want to sign out?") },
+                        confirmButton = {
+                                TextButton(
+                                        onClick = {
+                                                showLogoutDialog = false
+                                                onSignOut()
+                                        }
+                                ) { Text("Confirm", color = PrimaryBlue) }
+                        },
+                        dismissButton = {
+                                TextButton(onClick = { showLogoutDialog = false }) {
+                                        Text("Cancel", color = Color.Gray)
+                                }
+                        },
+                        containerColor = Color(0xFF1E293B),
+                        titleContentColor = Color.White,
+                        textContentColor = Color.White.copy(alpha = 0.8f)
+                )
+        }
+
+        Scaffold(
+                topBar = {
+                        TopAppBar(
+                                title = {
+                                        Text(
+                                                text = "Dashboard",
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White,
+                                                letterSpacing = 1.sp
+                                        )
+                                },
+                                actions = {
+                                        IconButton(onClick = onProfileClick) {
+                                                Icon(
+                                                        imageVector = Icons.Default.Person,
+                                                        contentDescription = "Profile",
+                                                        tint = Color.White
+                                                )
+                                        }
+                                        IconButton(onClick = onSettingsClick) {
+                                                Icon(
+                                                        imageVector = Icons.Default.Settings,
+                                                        contentDescription = "Settings",
+                                                        tint = Color.White
+                                                )
+                                        }
+                                        IconButton(onClick = { showLogoutDialog = true }) {
+                                                Icon(
+                                                        imageVector =
+                                                                Icons.AutoMirrored.Filled.Logout,
+                                                        contentDescription = "Sign Out",
+                                                        tint = Color.White
+                                                )
+                                        }
+                                },
+                                colors =
+                                        TopAppBarDefaults.topAppBarColors(
+                                                containerColor = Color.Transparent
+                                        )
                         )
-                    }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor =  Color.Transparent
-                )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.onSurface
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Main visual element
-            Image(
-                painter = painterResource(id = R.drawable.dass),
-                contentDescription = "DASS Assessment Logo",
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "Emotional Assessment",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "A quick and easy way to measure your emotional state. Ready to begin?",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.Black.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Primary Call-to-Action Button
-            Button(
-                onClick = onStartTest,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    "Start Assessment",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-            if (hasHistory) {
-                OutlinedButton(
-                    onClick = onViewHistory,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)),
+                containerColor = Color.Transparent
+        ) { innerPadding ->
+                Box(
+                        modifier =
+                                Modifier.fillMaxSize()
+                                        .background(backgroundBrush)
+                                        .padding(innerPadding)
                 ) {
-                    Icon(
-                        Icons.Default.History,
-                        contentDescription = "View History"
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        "View Assessment History",
-                        fontWeight = FontWeight.SemiBold
-                    )
+                        Column(
+                                modifier =
+                                        Modifier.fillMaxSize()
+                                                .padding(horizontal = 24.dp)
+                                                .verticalScroll(rememberScrollState()),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                // User Greeting Card (Glassmorphism)
+                                Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(24.dp),
+                                        colors =
+                                                CardDefaults.cardColors(
+                                                        containerColor =
+                                                                Color.White.copy(alpha = 0.05f)
+                                                ),
+                                        border =
+                                                androidx.compose.foundation.BorderStroke(
+                                                        1.dp,
+                                                        Color.White.copy(alpha = 0.15f)
+                                                )
+                                ) {
+                                        Column(
+                                                modifier = Modifier.padding(24.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                                // Main visual element inside the card
+                                                Box(
+                                                        modifier =
+                                                                Modifier.size(100.dp)
+                                                                        .clip(CircleShape)
+                                                                        .background(
+                                                                                Color.White.copy(
+                                                                                        alpha = 0.1f
+                                                                                )
+                                                                        )
+                                                                        .border(
+                                                                                2.dp,
+                                                                                Color.White.copy(
+                                                                                        alpha = 0.2f
+                                                                                ),
+                                                                                CircleShape
+                                                                        )
+                                                                        .padding(12.dp),
+                                                        contentAlignment = Alignment.Center
+                                                ) {
+                                                        Image(
+                                                                painter =
+                                                                        painterResource(
+                                                                                id = R.drawable.dass
+                                                                        ),
+                                                                contentDescription =
+                                                                        "DASS Assessment Logo",
+                                                                modifier =
+                                                                        Modifier.fillMaxSize()
+                                                                                .clip(CircleShape),
+                                                                contentScale = ContentScale.Crop
+                                                        )
+                                                }
+
+                                                Spacer(modifier = Modifier.height(20.dp))
+
+                                                Text(
+                                                        text = "Emotional Assessment",
+                                                        style =
+                                                                MaterialTheme.typography
+                                                                        .headlineMedium.copy(
+                                                                        fontWeight = FontWeight.Bold
+                                                                ),
+                                                        color = Color.White
+                                                )
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Text(
+                                                        text =
+                                                                "A quick and easy way to measure your emotional state. Ready to begin?",
+                                                        style = MaterialTheme.typography.bodyLarge,
+                                                        color = Color.White.copy(alpha = 0.7f),
+                                                        textAlign = TextAlign.Center
+                                                )
+                                        }
+                                }
+
+                                Spacer(modifier = Modifier.height(32.dp))
+
+                                // Primary Call-to-Action Button
+                                Button(
+                                        onClick = onStartTest,
+                                        modifier = Modifier.fillMaxWidth().height(60.dp),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors =
+                                                ButtonDefaults.buttonColors(
+                                                        containerColor = PrimaryBlue,
+                                                        contentColor = Color.White
+                                                ),
+                                        elevation =
+                                                ButtonDefaults.buttonElevation(
+                                                        defaultElevation = 8.dp
+                                                )
+                                ) {
+                                        Icon(
+                                                Icons.Default.PlayArrow,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(28.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                                "Start Assessment",
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Bold
+                                        )
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                if (hasHistory) {
+                                        OutlinedButton(
+                                                onClick = onViewHistory,
+                                                modifier = Modifier.fillMaxWidth().height(60.dp),
+                                                shape = RoundedCornerShape(16.dp),
+                                                colors =
+                                                        ButtonDefaults.outlinedButtonColors(
+                                                                contentColor = Color.White
+                                                        ),
+                                                border =
+                                                        androidx.compose.foundation.BorderStroke(
+                                                                1.dp,
+                                                                Color.White.copy(alpha = 0.5f)
+                                                        )
+                                        ) {
+                                                Icon(
+                                                        Icons.Default.History,
+                                                        contentDescription = "View History"
+                                                )
+                                                Spacer(modifier = Modifier.width(12.dp))
+                                                Text(
+                                                        "View Assessment History",
+                                                        fontSize = 16.sp,
+                                                        fontWeight = FontWeight.SemiBold
+                                                )
+                                        }
+                                }
+
+                                Spacer(modifier = Modifier.height(32.dp))
+
+                                // Features Section
+                                Text(
+                                        text = "What to expect",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = Color.White,
+                                        modifier = Modifier.align(Alignment.Start)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                        FeatureRow(
+                                                icon = Icons.Default.CheckCircle,
+                                                title = "42 Quick Questions",
+                                                subtitle = "Simple self-assessment format."
+                                        )
+                                        FeatureRow(
+                                                icon = Icons.Default.Timer,
+                                                title = "10-15 Minutes",
+                                                subtitle = "A short time for valuable insight."
+                                        )
+                                        FeatureRow(
+                                                icon = Icons.Outlined.Analytics,
+                                                title = "Private & Secure",
+                                                subtitle = "Provides instant, private results."
+                                        )
+                                }
+
+                                Spacer(modifier = Modifier.height(32.dp))
+                        }
                 }
-            }
+        }
+}
 
-            Spacer(modifier = Modifier.height(40.dp))
-
-            Column(
+@Composable
+fun FeatureRow(icon: ImageVector, title: String, subtitle: String) {
+        Card(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                Card () {
-                    FeatureRow(
-                        icon = Icons.Default.CheckCircle,
-                        title = "42 Quick Questions",
-                        subtitle = "Simple self-assessment format."
-                    )
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f)),
+                border =
+                        androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                Color.White.copy(alpha = 0.1f)
+                        )
+        ) {
+                Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                        Box(
+                                modifier =
+                                        Modifier.size(48.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.White.copy(alpha = 0.2f)),
+                                contentAlignment = Alignment.Center
+                        ) {
+                                Icon(
+                                        icon,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp)
+                                )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                                Text(
+                                        title,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                        subtitle,
+                                        fontSize = 14.sp,
+                                        color = Color.White.copy(alpha = 0.7f)
+                                )
+                        }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                FeatureRow(
-                    icon = Icons.Default.Timer,
-                    title = "10-15 Minutes",
-                    subtitle = "A short time for valuable insight."
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                FeatureRow(
-                    icon = Icons.Outlined.Analytics,
-                    title = "Private & Secure",
-                    subtitle = "Provides instant, private results."
-                )
-
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
-    }
-}
-
-@Composable
-private fun InfoRow(icon: ImageVector, text: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 16.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Black.copy(alpha = 0.9f)
-        )
-    }
-}
-
-@Composable
-fun FeatureRow(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF0F3FF))
-            .padding(12.dp)
-    ) {
-        Icon(icon, contentDescription = null, tint = Color(0xFF6A74F7), modifier = Modifier.size(28.dp))
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Text(subtitle, fontSize = 12.sp, color = Color.Gray)
-        }
-    }
 }
