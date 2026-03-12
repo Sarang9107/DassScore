@@ -6,11 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import com.example.dassscore.data.repository.FirebaseRepository
 import com.example.dassscore.features.admin.AdminDashboardScreen
 import com.example.dassscore.features.auth.AuthScreen
@@ -18,6 +17,7 @@ import com.example.dassscore.features.auth.ForgotPasswordScreen
 import com.example.dassscore.features.history.HistoryScreen
 import com.example.dassscore.features.home.HomeScreen
 import com.example.dassscore.features.profile.ProfileScreen
+import com.example.dassscore.features.profile.StudentProfileScreen
 import com.example.dassscore.features.progress.DataVisualizationScreen
 import com.example.dassscore.features.progress.StudentProgressScreen
 import com.example.dassscore.features.result.ResultScreen
@@ -104,12 +104,7 @@ fun DassScoreApp() {
         Box(
                 modifier =
                         Modifier.fillMaxSize()
-                                .background(
-                                        Brush.verticalGradient(
-                                                colors =
-                                                        listOf(Color(0xFFF8FAFC), Color(0xFFE2E8F0))
-                                        )
-                                )
+                                .background(MaterialTheme.colorScheme.background)
         ) {
                 when (currentScreen) {
                         "loading" -> {
@@ -150,7 +145,9 @@ fun DassScoreApp() {
                                                         currentQuestion = 0
                                                 },
                                                 onViewHistory = { currentScreen = "history" },
-                                                onProfileClick = { currentScreen = "profile" },
+                                                onProfileClick = {
+                                                        currentScreen = "student_profile"
+                                                },
                                                 onSettingsClick = { currentScreen = "settings" },
                                                 onSignOut = onSignOut,
                                                 hasHistory = savedResults.isNotEmpty()
@@ -300,6 +297,15 @@ fun DassScoreApp() {
                                         }
                                         currentScreen == "settings" -> {
                                                 SettingsScreen(onBack = { currentScreen = "home" })
+                                        }
+                                        currentScreen == "student_profile" -> {
+                                                currentUser?.let { user ->
+                                                        StudentProfileScreen(
+                                                                user = user,
+                                                                repository = repository,
+                                                                onBack = { currentScreen = "home" }
+                                                        )
+                                                }
                                         }
                                 }
                         }

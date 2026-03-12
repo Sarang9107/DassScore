@@ -50,7 +50,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -62,6 +61,8 @@ import androidx.compose.ui.unit.sp
 import com.example.dassscore.R
 import com.example.dassscore.data.repository.User
 import com.example.dassscore.ui.theme.PrimaryBlue
+import com.example.dassscore.ui.theme.ThemeUtils
+import com.example.dassscore.ui.theme.isAppDarkTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,12 +76,14 @@ fun HomeScreen(
         onSignOut: () -> Unit
 ) {
         var showLogoutDialog by remember { mutableStateOf(false) }
+        val isDark = isAppDarkTheme()
 
-        // Premium background gradient
-        val backgroundBrush =
-                Brush.verticalGradient(
-                        colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
-                )
+        val backgroundBrush = ThemeUtils.appBackgroundBrush(isDark)
+        val contentColor = ThemeUtils.appContentColor(isDark)
+        val subtleColor = ThemeUtils.appSubtleContentColor(isDark)
+        val cardColor = ThemeUtils.appCardColor(isDark)
+        val cardBorderColor = ThemeUtils.appCardBorderColor(isDark)
+        val iconColor = ThemeUtils.appIconColor(isDark)
 
         if (showLogoutDialog) {
                 AlertDialog(
@@ -100,9 +103,9 @@ fun HomeScreen(
                                         Text("Cancel", color = Color.Gray)
                                 }
                         },
-                        containerColor = Color(0xFF1E293B),
-                        titleContentColor = Color.White,
-                        textContentColor = Color.White.copy(alpha = 0.8f)
+                        containerColor = ThemeUtils.appDialogContainerColor(isDark),
+                        titleContentColor = ThemeUtils.appDialogContentColor(isDark),
+                        textContentColor = ThemeUtils.appDialogContentColor(isDark).copy(alpha = 0.8f)
                 )
         }
 
@@ -113,7 +116,7 @@ fun HomeScreen(
                                         Text(
                                                 text = "Dashboard",
                                                 fontWeight = FontWeight.Bold,
-                                                color = Color.White,
+                                                color = contentColor,
                                                 letterSpacing = 1.sp
                                         )
                                 },
@@ -122,14 +125,14 @@ fun HomeScreen(
                                                 Icon(
                                                         imageVector = Icons.Default.Person,
                                                         contentDescription = "Profile",
-                                                        tint = Color.White
+                                                        tint = iconColor
                                                 )
                                         }
                                         IconButton(onClick = onSettingsClick) {
                                                 Icon(
                                                         imageVector = Icons.Default.Settings,
                                                         contentDescription = "Settings",
-                                                        tint = Color.White
+                                                        tint = iconColor
                                                 )
                                         }
                                         IconButton(onClick = { showLogoutDialog = true }) {
@@ -137,7 +140,7 @@ fun HomeScreen(
                                                         imageVector =
                                                                 Icons.AutoMirrored.Filled.Logout,
                                                         contentDescription = "Sign Out",
-                                                        tint = Color.White
+                                                        tint = iconColor
                                                 )
                                         }
                                 },
@@ -170,13 +173,12 @@ fun HomeScreen(
                                         shape = RoundedCornerShape(24.dp),
                                         colors =
                                                 CardDefaults.cardColors(
-                                                        containerColor =
-                                                                Color.White.copy(alpha = 0.05f)
+                                                        containerColor = cardColor
                                                 ),
                                         border =
                                                 androidx.compose.foundation.BorderStroke(
                                                         1.dp,
-                                                        Color.White.copy(alpha = 0.15f)
+                                                        cardBorderColor
                                                 )
                                 ) {
                                         Column(
@@ -189,15 +191,11 @@ fun HomeScreen(
                                                                 Modifier.size(100.dp)
                                                                         .clip(CircleShape)
                                                                         .background(
-                                                                                Color.White.copy(
-                                                                                        alpha = 0.1f
-                                                                                )
+                                                                                ThemeUtils.appCircleBackgroundColor(isDark)
                                                                         )
                                                                         .border(
                                                                                 2.dp,
-                                                                                Color.White.copy(
-                                                                                        alpha = 0.2f
-                                                                                ),
+                                                                                ThemeUtils.appCircleBorderColor(isDark),
                                                                                 CircleShape
                                                                         )
                                                                         .padding(12.dp),
@@ -226,14 +224,14 @@ fun HomeScreen(
                                                                         .headlineMedium.copy(
                                                                         fontWeight = FontWeight.Bold
                                                                 ),
-                                                        color = Color.White
+                                                        color = contentColor
                                                 )
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 Text(
                                                         text =
                                                                 "A quick and easy way to measure your emotional state. Ready to begin?",
                                                         style = MaterialTheme.typography.bodyLarge,
-                                                        color = Color.White.copy(alpha = 0.7f),
+                                                        color = subtleColor,
                                                         textAlign = TextAlign.Center
                                                 )
                                         }
@@ -278,12 +276,12 @@ fun HomeScreen(
                                                 shape = RoundedCornerShape(16.dp),
                                                 colors =
                                                         ButtonDefaults.outlinedButtonColors(
-                                                                contentColor = Color.White
+                                                                contentColor = contentColor
                                                         ),
                                                 border =
                                                         androidx.compose.foundation.BorderStroke(
                                                                 1.dp,
-                                                                Color.White.copy(alpha = 0.5f)
+                                                                contentColor.copy(alpha = 0.5f)
                                                         )
                                         ) {
                                                 Icon(
@@ -305,7 +303,7 @@ fun HomeScreen(
                                 Text(
                                         text = "What to expect",
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = Color.White,
+                                        color = contentColor,
                                         modifier = Modifier.align(Alignment.Start)
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
@@ -317,17 +315,20 @@ fun HomeScreen(
                                         FeatureRow(
                                                 icon = Icons.Default.CheckCircle,
                                                 title = "42 Quick Questions",
-                                                subtitle = "Simple self-assessment format."
+                                                subtitle = "Simple self-assessment format.",
+                                                isDark = isDark
                                         )
                                         FeatureRow(
                                                 icon = Icons.Default.Timer,
                                                 title = "10-15 Minutes",
-                                                subtitle = "A short time for valuable insight."
+                                                subtitle = "A short time for valuable insight.",
+                                                isDark = isDark
                                         )
                                         FeatureRow(
                                                 icon = Icons.Outlined.Analytics,
                                                 title = "Private & Secure",
-                                                subtitle = "Provides instant, private results."
+                                                subtitle = "Provides instant, private results.",
+                                                isDark = isDark
                                         )
                                 }
 
@@ -338,15 +339,18 @@ fun HomeScreen(
 }
 
 @Composable
-fun FeatureRow(icon: ImageVector, title: String, subtitle: String) {
+fun FeatureRow(icon: ImageVector, title: String, subtitle: String, isDark: Boolean = true) {
+        val contentColor = ThemeUtils.appContentColor(isDark)
+        val subtleColor = ThemeUtils.appSubtleContentColor(isDark)
+
         Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f)),
+                colors = CardDefaults.cardColors(containerColor = ThemeUtils.appCardColor(isDark)),
                 border =
                         androidx.compose.foundation.BorderStroke(
                                 1.dp,
-                                Color.White.copy(alpha = 0.1f)
+                                ThemeUtils.appCardBorderColor(isDark)
                         )
         ) {
                 Row(
@@ -357,13 +361,13 @@ fun FeatureRow(icon: ImageVector, title: String, subtitle: String) {
                                 modifier =
                                         Modifier.size(48.dp)
                                                 .clip(CircleShape)
-                                                .background(Color.White.copy(alpha = 0.2f)),
+                                                .background(ThemeUtils.appCircleBackgroundColor(isDark)),
                                 contentAlignment = Alignment.Center
                         ) {
                                 Icon(
                                         icon,
                                         contentDescription = null,
-                                        tint = Color.White,
+                                        tint = ThemeUtils.appIconColor(isDark),
                                         modifier = Modifier.size(24.dp)
                                 )
                         }
@@ -373,13 +377,13 @@ fun FeatureRow(icon: ImageVector, title: String, subtitle: String) {
                                         title,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = contentColor
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                         subtitle,
                                         fontSize = 14.sp,
-                                        color = Color.White.copy(alpha = 0.7f)
+                                        color = subtleColor
                                 )
                         }
                 }

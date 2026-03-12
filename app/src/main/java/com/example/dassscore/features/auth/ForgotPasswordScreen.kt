@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,7 +39,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -52,6 +50,8 @@ import androidx.compose.ui.unit.sp
 import com.example.dassscore.data.repository.FirebaseRepository
 import com.example.dassscore.ui.theme.PrimaryBlue
 import com.example.dassscore.ui.theme.PrimaryBlueDark
+import com.example.dassscore.ui.theme.ThemeUtils
+import com.example.dassscore.ui.theme.isAppDarkTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,11 +66,16 @@ fun ForgotPasswordScreen(repository: FirebaseRepository, onBack: () -> Unit) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Premium background gradient
-    val backgroundBrush =
-            Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
-            )
+    val isDark = isAppDarkTheme()
+    val backgroundBrush = ThemeUtils.appBackgroundBrush(isDark)
+    val contentColor = ThemeUtils.appContentColor(isDark)
+    val subtleColor = ThemeUtils.appSubtleContentColor(isDark)
+    val cardColor = ThemeUtils.appCardColor(isDark)
+    val cardBorderColor = ThemeUtils.appCardBorderColor(isDark)
+    val fieldBorderColor = ThemeUtils.appTextFieldBorderColor(isDark)
+    val fieldLabelColor = ThemeUtils.appTextFieldLabelColor(isDark)
+    val fieldTextColor = ThemeUtils.appTextFieldTextColor(isDark)
+    val accentColor = if (isDark) PrimaryBlueDark else PrimaryBlue
 
     Box(
             modifier =
@@ -105,13 +110,13 @@ fun ForgotPasswordScreen(repository: FirebaseRepository, onBack: () -> Unit) {
                                             fontWeight = FontWeight.Bold,
                                             letterSpacing = 1.sp
                                     ),
-                            color = Color.White
+                            color = contentColor
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                             text = "Enter your email address to receive a password reset link",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = subtleColor,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 16.dp)
                     )
@@ -126,12 +131,12 @@ fun ForgotPasswordScreen(repository: FirebaseRepository, onBack: () -> Unit) {
                     shape = RoundedCornerShape(24.dp),
                     colors =
                             CardDefaults.cardColors(
-                                    containerColor = Color.White.copy(alpha = 0.05f)
+                                    containerColor = cardColor
                             ),
                     border =
                             androidx.compose.foundation.BorderStroke(
                                     1.dp,
-                                    Color.White.copy(alpha = 0.15f)
+                                    cardBorderColor
                             )
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
@@ -144,13 +149,13 @@ fun ForgotPasswordScreen(repository: FirebaseRepository, onBack: () -> Unit) {
                                 successMessage = ""
                             },
                             label = {
-                                Text("Email Address", color = Color.White.copy(alpha = 0.7f))
+                                Text("Email Address", color = fieldLabelColor)
                             },
                             leadingIcon = {
                                 Icon(
                                         Icons.Default.Email,
                                         contentDescription = null,
-                                        tint = Color.White.copy(alpha = 0.7f)
+                                        tint = fieldLabelColor
                                 )
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -158,11 +163,11 @@ fun ForgotPasswordScreen(repository: FirebaseRepository, onBack: () -> Unit) {
                             shape = RoundedCornerShape(12.dp),
                             colors =
                                     OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = PrimaryBlueDark,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White,
-                                            cursorColor = PrimaryBlueDark
+                                            focusedBorderColor = accentColor,
+                                            unfocusedBorderColor = fieldBorderColor,
+                                            focusedTextColor = fieldTextColor,
+                                            unfocusedTextColor = fieldTextColor,
+                                            cursorColor = accentColor
                                     )
                     )
 
@@ -182,7 +187,7 @@ fun ForgotPasswordScreen(repository: FirebaseRepository, onBack: () -> Unit) {
                     if (successMessage.isNotEmpty()) {
                         Text(
                                 text = successMessage,
-                                color = Color(0xFF4CAF50), // Green point
+                                color = Color(0xFF4CAF50),
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
@@ -244,7 +249,7 @@ fun ForgotPasswordScreen(repository: FirebaseRepository, onBack: () -> Unit) {
 
             // Back to Login Link
             TextButton(onClick = onBack) {
-                Text("Back to Login", fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
+                Text("Back to Login", fontWeight = FontWeight.Bold, color = accentColor)
             }
         }
     }

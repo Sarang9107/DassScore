@@ -12,7 +12,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Grading
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import com.example.dassscore.ui.theme.ThemePreferenceHelper
+import kotlinx.coroutines.launch
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -180,6 +187,18 @@ fun AdminDashboardScreen(
                         TopAppBar(
                                 title = { Text("Admin Dashboard", fontWeight = FontWeight.Bold) },
                                 actions = {
+                                        val context = LocalContext.current
+                                        val themeHelper = ThemePreferenceHelper(context)
+                                        val isDarkMode by themeHelper.themeFlow.collectAsState(initial = themeHelper.isDarkMode())
+                                        val scope = rememberCoroutineScope()
+                                        IconButton(onClick = {
+                                                scope.launch { themeHelper.setDarkMode(!isDarkMode) }
+                                        }) {
+                                                Icon(
+                                                        if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                                        contentDescription = "Toggle Theme"
+                                                )
+                                        }
                                         IconButton(onClick = onSignOut) {
                                                 Icon(
                                                         Icons.AutoMirrored.Filled.Logout,

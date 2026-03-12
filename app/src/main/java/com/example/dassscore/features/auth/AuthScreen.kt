@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -59,15 +59,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.NoCredentialException
 import com.example.dassscore.R
 import com.example.dassscore.data.repository.FirebaseRepository
 import com.example.dassscore.data.repository.User
 import com.example.dassscore.ui.theme.PrimaryBlue
 import com.example.dassscore.ui.theme.PrimaryBlueDark
+import com.example.dassscore.ui.theme.ThemeUtils
+import com.example.dassscore.ui.theme.isAppDarkTheme
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,11 +93,16 @@ fun AuthScreen(
         val credentialManager = remember { CredentialManager.create(context) }
         val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
-        // Premium background gradient
-        val backgroundBrush =
-                Brush.verticalGradient(
-                        colors = listOf(Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364))
-                )
+        val isDark = isAppDarkTheme()
+        val backgroundBrush = ThemeUtils.appBackgroundBrush(isDark)
+        val contentColor = ThemeUtils.appContentColor(isDark)
+        val subtleColor = ThemeUtils.appSubtleContentColor(isDark)
+        val cardColor = ThemeUtils.appCardColor(isDark)
+        val cardBorderColor = ThemeUtils.appCardBorderColor(isDark)
+        val fieldBorderColor = ThemeUtils.appTextFieldBorderColor(isDark)
+        val fieldLabelColor = ThemeUtils.appTextFieldLabelColor(isDark)
+        val fieldTextColor = ThemeUtils.appTextFieldTextColor(isDark)
+        val accentColor = if (isDark) PrimaryBlueDark else PrimaryBlue
 
         Box(
                 modifier =
@@ -122,10 +129,10 @@ fun AuthScreen(
                                 modifier =
                                         Modifier.size(120.dp)
                                                 .clip(CircleShape)
-                                                .background(Color.White.copy(alpha = 0.1f))
+                                                .background(ThemeUtils.appCircleBackgroundColor(isDark))
                                                 .border(
                                                         2.dp,
-                                                        Color.White.copy(alpha = 0.2f),
+                                                        ThemeUtils.appCircleBorderColor(isDark),
                                                         CircleShape
                                                 )
                                                 .padding(16.dp),
@@ -135,7 +142,7 @@ fun AuthScreen(
                                         painter =
                                                 painterResource(
                                                         id = R.drawable.dass
-                                                ), // Using standard logo
+                                                ),
                                         contentDescription = "App Logo",
                                         modifier = Modifier.fillMaxSize().clip(CircleShape),
                                         contentScale = ContentScale.Crop
@@ -159,7 +166,7 @@ fun AuthScreen(
                                                                 fontWeight = FontWeight.Bold,
                                                                 letterSpacing = 1.sp
                                                         ),
-                                                color = Color.White
+                                                color = contentColor
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
@@ -168,7 +175,7 @@ fun AuthScreen(
                                                                 "Sign in to continue your wellness journey"
                                                         else "Join to track your mental wellness",
                                                 style = MaterialTheme.typography.bodyLarge,
-                                                color = Color.White.copy(alpha = 0.7f),
+                                                color = subtleColor,
                                                 textAlign = TextAlign.Center
                                         )
                                 }
@@ -182,12 +189,12 @@ fun AuthScreen(
                                 shape = RoundedCornerShape(24.dp),
                                 colors =
                                         CardDefaults.cardColors(
-                                                containerColor = Color.White.copy(alpha = 0.05f)
+                                                containerColor = cardColor
                                         ),
                                 border =
                                         androidx.compose.foundation.BorderStroke(
                                                 1.dp,
-                                                Color.White.copy(alpha = 0.15f)
+                                                cardBorderColor
                                         )
                         ) {
                                 Column(modifier = Modifier.padding(24.dp)) {
@@ -202,20 +209,14 @@ fun AuthScreen(
                                                 label = {
                                                         Text(
                                                                 "Email",
-                                                                color =
-                                                                        Color.White.copy(
-                                                                                alpha = 0.7f
-                                                                        )
+                                                                color = fieldLabelColor
                                                         )
                                                 },
                                                 leadingIcon = {
                                                         Icon(
                                                                 Icons.Default.Email,
                                                                 contentDescription = null,
-                                                                tint =
-                                                                        Color.White.copy(
-                                                                                alpha = 0.7f
-                                                                        )
+                                                                tint = fieldLabelColor
                                                         )
                                                 },
                                                 modifier = Modifier.fillMaxWidth(),
@@ -223,15 +224,11 @@ fun AuthScreen(
                                                 shape = RoundedCornerShape(12.dp),
                                                 colors =
                                                         OutlinedTextFieldDefaults.colors(
-                                                                focusedBorderColor =
-                                                                        PrimaryBlueDark,
-                                                                unfocusedBorderColor =
-                                                                        Color.White.copy(
-                                                                                alpha = 0.3f
-                                                                        ),
-                                                                focusedTextColor = Color.White,
-                                                                unfocusedTextColor = Color.White,
-                                                                cursorColor = PrimaryBlueDark
+                                                                focusedBorderColor = accentColor,
+                                                                unfocusedBorderColor = fieldBorderColor,
+                                                                focusedTextColor = fieldTextColor,
+                                                                unfocusedTextColor = fieldTextColor,
+                                                                cursorColor = accentColor
                                                         )
                                         )
 
@@ -247,20 +244,14 @@ fun AuthScreen(
                                                 label = {
                                                         Text(
                                                                 "Password",
-                                                                color =
-                                                                        Color.White.copy(
-                                                                                alpha = 0.7f
-                                                                        )
+                                                                color = fieldLabelColor
                                                         )
                                                 },
                                                 leadingIcon = {
                                                         Icon(
                                                                 Icons.Default.Lock,
                                                                 contentDescription = null,
-                                                                tint =
-                                                                        Color.White.copy(
-                                                                                alpha = 0.7f
-                                                                        )
+                                                                tint = fieldLabelColor
                                                         )
                                                 },
                                                 modifier = Modifier.fillMaxWidth(),
@@ -270,15 +261,11 @@ fun AuthScreen(
                                                 shape = RoundedCornerShape(12.dp),
                                                 colors =
                                                         OutlinedTextFieldDefaults.colors(
-                                                                focusedBorderColor =
-                                                                        PrimaryBlueDark,
-                                                                unfocusedBorderColor =
-                                                                        Color.White.copy(
-                                                                                alpha = 0.3f
-                                                                        ),
-                                                                focusedTextColor = Color.White,
-                                                                unfocusedTextColor = Color.White,
-                                                                cursorColor = PrimaryBlueDark
+                                                                focusedBorderColor = accentColor,
+                                                                unfocusedBorderColor = fieldBorderColor,
+                                                                focusedTextColor = fieldTextColor,
+                                                                unfocusedTextColor = fieldTextColor,
+                                                                cursorColor = accentColor
                                                         )
                                         )
 
@@ -293,20 +280,14 @@ fun AuthScreen(
                                                         label = {
                                                                 Text(
                                                                         "Confirm Password",
-                                                                        color =
-                                                                                Color.White.copy(
-                                                                                        alpha = 0.7f
-                                                                                )
+                                                                        color = fieldLabelColor
                                                                 )
                                                         },
                                                         leadingIcon = {
                                                                 Icon(
                                                                         Icons.Default.Lock,
                                                                         contentDescription = null,
-                                                                        tint =
-                                                                                Color.White.copy(
-                                                                                        alpha = 0.7f
-                                                                                )
+                                                                        tint = fieldLabelColor
                                                                 )
                                                         },
                                                         modifier = Modifier.fillMaxWidth(),
@@ -316,18 +297,11 @@ fun AuthScreen(
                                                         shape = RoundedCornerShape(12.dp),
                                                         colors =
                                                                 OutlinedTextFieldDefaults.colors(
-                                                                        focusedBorderColor =
-                                                                                PrimaryBlueDark,
-                                                                        unfocusedBorderColor =
-                                                                                Color.White.copy(
-                                                                                        alpha = 0.3f
-                                                                                ),
-                                                                        focusedTextColor =
-                                                                                Color.White,
-                                                                        unfocusedTextColor =
-                                                                                Color.White,
-                                                                        cursorColor =
-                                                                                PrimaryBlueDark
+                                                                        focusedBorderColor = accentColor,
+                                                                        unfocusedBorderColor = fieldBorderColor,
+                                                                        focusedTextColor = fieldTextColor,
+                                                                        unfocusedTextColor = fieldTextColor,
+                                                                        cursorColor = accentColor
                                                                 )
                                                 )
                                         }
@@ -343,7 +317,7 @@ fun AuthScreen(
                                                         ) {
                                                                 Text(
                                                                         "Forgot Password?",
-                                                                        color = PrimaryBlueDark,
+                                                                        color = accentColor,
                                                                         fontWeight =
                                                                                 FontWeight.SemiBold
                                                                 )
@@ -367,7 +341,7 @@ fun AuthScreen(
                                         if (successMessage.isNotEmpty()) {
                                                 Text(
                                                         text = successMessage,
-                                                        color = Color(0xFF4CAF50), // Green
+                                                        color = Color(0xFF4CAF50),
                                                         style = MaterialTheme.typography.bodySmall,
                                                         modifier = Modifier.fillMaxWidth(),
                                                         textAlign = TextAlign.Center
@@ -397,7 +371,7 @@ fun AuthScreen(
                                                                 return@Button
                                                         }
                                                         isLoading = true
-                                                        CoroutineScope(Dispatchers.Main).launch {
+                                                        coroutineScope.launch {
                                                                 val result =
                                                                         if (isLogin) {
                                                                                 repository
@@ -467,7 +441,7 @@ fun AuthScreen(
                                                 if (isLogin) "Don't have an account?"
                                                 else "Already have an account?",
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.White.copy(alpha = 0.7f)
+                                        color = subtleColor
                                 )
                                 TextButton(
                                         onClick = {
@@ -480,7 +454,7 @@ fun AuthScreen(
                                         Text(
                                                 if (isLogin) "Sign Up" else "Sign In",
                                                 fontWeight = FontWeight.Bold,
-                                                color = PrimaryBlueDark
+                                                color = accentColor
                                         )
                                 }
                         }
@@ -496,18 +470,18 @@ fun AuthScreen(
                                         modifier =
                                                 Modifier.weight(1f)
                                                         .height(1.dp)
-                                                        .background(Color.White.copy(alpha = 0.2f))
+                                                        .background(ThemeUtils.appDividerColor(isDark))
                                 )
                                 Text(
                                         " OR ",
-                                        color = Color.White.copy(alpha = 0.5f),
+                                        color = subtleColor,
                                         modifier = Modifier.padding(horizontal = 8.dp)
                                 )
                                 Box(
                                         modifier =
                                                 Modifier.weight(1f)
                                                         .height(1.dp)
-                                                        .background(Color.White.copy(alpha = 0.2f))
+                                                        .background(ThemeUtils.appDividerColor(isDark))
                                 )
                         }
 
@@ -517,80 +491,127 @@ fun AuthScreen(
                         Button(
                                 onClick = {
                                         isLoading = true
-                                        CoroutineScope(Dispatchers.Main).launch {
+                                        errorMessage = ""
+                                        coroutineScope.launch {
                                                 try {
                                                         val webClientId =
                                                                 context.getString(
                                                                         R.string
                                                                                 .default_web_client_id
                                                                 )
-                                                        val googleIdOption =
-                                                                GetGoogleIdOption.Builder()
-                                                                        .setFilterByAuthorizedAccounts(
-                                                                                false
-                                                                        )
-                                                                        .setServerClientId(
-                                                                                webClientId
-                                                                        )
-                                                                        .setAutoSelectEnabled(true)
-                                                                        .build()
 
-                                                        val request =
-                                                                GetCredentialRequest.Builder()
-                                                                        .addCredentialOption(
-                                                                                googleIdOption
-                                                                        )
-                                                                        .build()
-
-                                                        val result =
-                                                                credentialManager.getCredential(
-                                                                        request = request,
-                                                                        context = context
-                                                                )
-                                                        val credential = result.credential
-                                                        if (credential.type ==
+                                                        // Helper to handle the credential result
+                                                        suspend fun handleCredentialResult(
+                                                                result: androidx.credentials.GetCredentialResponse
+                                                        ) {
+                                                                val credential = result.credential
+                                                                if (credential.type ==
                                                                         GoogleIdTokenCredential
                                                                                 .TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                                                        ) {
-                                                                val googleIdTokenCredential =
-                                                                        GoogleIdTokenCredential
-                                                                                .createFrom(
-                                                                                        credential
-                                                                                                .data
-                                                                                )
-                                                                repository
-                                                                        .signInWithGoogle(
-                                                                                googleIdTokenCredential
-                                                                                        .idToken
-                                                                        )
-                                                                        .fold(
-                                                                                onSuccess = { user
-                                                                                        ->
-                                                                                        isLoading =
-                                                                                                false
-                                                                                        onAuthSuccess(
-                                                                                                user
+                                                                ) {
+                                                                        val googleIdTokenCredential =
+                                                                                GoogleIdTokenCredential
+                                                                                        .createFrom(
+                                                                                                credential
+                                                                                                        .data
                                                                                         )
-                                                                                },
-                                                                                onFailure = {
-                                                                                        exception ->
-                                                                                        isLoading =
-                                                                                                false
-                                                                                        errorMessage =
-                                                                                                exception
-                                                                                                        .message
-                                                                                                        ?: "Google Sign In Failed"
-                                                                                }
-                                                                        )
-                                                        } else {
-                                                                isLoading = false
-                                                                errorMessage =
-                                                                        "Unexpected credential type"
+                                                                        repository
+                                                                                .signInWithGoogle(
+                                                                                        googleIdTokenCredential
+                                                                                                .idToken
+                                                                                )
+                                                                                .fold(
+                                                                                        onSuccess = {
+                                                                                                user ->
+                                                                                                isLoading =
+                                                                                                        false
+                                                                                                onAuthSuccess(
+                                                                                                        user
+                                                                                                )
+                                                                                        },
+                                                                                        onFailure = {
+                                                                                                exception ->
+                                                                                                isLoading =
+                                                                                                        false
+                                                                                                errorMessage =
+                                                                                                        exception
+                                                                                                                .message
+                                                                                                                ?: "Google Sign In Failed"
+                                                                                        }
+                                                                                )
+                                                                } else {
+                                                                        isLoading = false
+                                                                        errorMessage =
+                                                                                "Unexpected credential type"
+                                                                }
+                                                        }
+
+                                                        try {
+                                                                // First try seamless sign-in
+                                                                val googleIdOption =
+                                                                        GetGoogleIdOption.Builder()
+                                                                                .setFilterByAuthorizedAccounts(
+                                                                                        false
+                                                                                )
+                                                                                .setServerClientId(
+                                                                                        webClientId
+                                                                                )
+                                                                                .setAutoSelectEnabled(
+                                                                                        true
+                                                                                )
+                                                                                .build()
+
+                                                                val request =
+                                                                        GetCredentialRequest
+                                                                                .Builder()
+                                                                                .addCredentialOption(
+                                                                                        googleIdOption
+                                                                                )
+                                                                                .build()
+
+                                                                val result =
+                                                                        credentialManager
+                                                                                .getCredential(
+                                                                                        request =
+                                                                                                request,
+                                                                                        context =
+                                                                                                context
+                                                                                )
+                                                                handleCredentialResult(result)
+                                                        } catch (
+                                                                e: NoCredentialException
+                                                        ) {
+                                                                // Fallback: show the full Google
+                                                                // account picker
+                                                                val signInWithGoogleOption =
+                                                                        GetSignInWithGoogleOption
+                                                                                .Builder(
+                                                                                        webClientId
+                                                                                )
+                                                                                .build()
+
+                                                                val request =
+                                                                        GetCredentialRequest
+                                                                                .Builder()
+                                                                                .addCredentialOption(
+                                                                                        signInWithGoogleOption
+                                                                                )
+                                                                                .build()
+
+                                                                val result =
+                                                                        credentialManager
+                                                                                .getCredential(
+                                                                                        request =
+                                                                                                request,
+                                                                                        context =
+                                                                                                context
+                                                                                )
+                                                                handleCredentialResult(result)
                                                         }
                                                 } catch (e: Exception) {
                                                         isLoading = false
                                                         errorMessage =
-                                                                e.message ?: "Google Auth Failed"
+                                                                e.message ?: "Google Sign In Failed"
                                                 }
                                         }
                                 },
@@ -599,16 +620,21 @@ fun AuthScreen(
                                 enabled = !isLoading,
                                 colors =
                                         ButtonDefaults.buttonColors(
-                                                containerColor = Color.White,
-                                                contentColor = Color.Black
-                                        )
+                                                containerColor = if (isDark) Color.White else Color(0xFFF1F5F9),
+                                                contentColor = Color(0xFF1F1F1F)
+                                        ),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
                         ) {
-                                // You would ideally put a Google icon here, using a placeholder
-                                // text for now
+                                Image(
+                                        painter = painterResource(id = R.drawable.ic_google),
+                                        contentDescription = "Google Logo",
+                                        modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Text(
-                                        "G  Continue with Google",
+                                        "Continue with Google",
                                         fontSize = 16.sp,
-                                        fontWeight = FontWeight.SemiBold
+                                        fontWeight = FontWeight.Medium
                                 )
                         }
                         Spacer(modifier = Modifier.height(24.dp))
